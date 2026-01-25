@@ -107,7 +107,7 @@ function initializeWhatsAppClient() {
         switch (userState.step) {
             case 'initial':
                 await msg.reply('Bem-vindo! \n O Furo de Água Segura é especialista em criar fontes de água potável e seguras. \n Para garantir a precisão da nossa cotação e a viabilidade do projeto, é essencial realizar uma pré-avaliação técnica no local. Assim, podemos analisar o terreno e as suas necessidades específicas.');
-                await msg.reply('Por favor, escolha uma opção:\n1. Agendamento da visita\n2. Suporte\n\nDigite "atendente" a qualquer momento para falar com um humano.');
+                await msg.reply('Por favor, escolha uma opção:\n1. Agendamento da visita\n2. Suporte\n3. Falar com Vendas\n\nDigite "atendente" a qualquer momento para falar com um humano.');
                 userState.step = 'waiting_for_choice';
                 break;
 
@@ -118,8 +118,11 @@ function initializeWhatsAppClient() {
                 } else if (userMessage.includes('2')) {
                     await msg.reply('Você selecionou Suporte. Por favor, descreva seu problema.');
                     userState.step = 'support_flow';
+                } else if (userMessage.includes('3')) {
+                    await msg.reply('Você selecionou Falar com Vendas. Por favor, aguarde enquanto um de nossos especialistas de vendas entra em contato.');
+                    userState.step = 'sales_flow';
                 } else {
-                    await msg.reply('Opção inválida. Por favor, digite 1 para Agendamento da visita ou 2 para Suporte.');
+                    await msg.reply('Opção inválida. Por favor, digite 1 para Agendamento da visita, 2 para Suporte ou 3 para Falar com Vendas.');
                 }
                 break;
             
@@ -172,8 +175,8 @@ function initializeWhatsAppClient() {
                 break;
             
             case 'sales_flow':
-                // This state is now handled by waiting_for_visit_confirmation, but we keep it for reference
-                // or future use cases.
+                io.emit('log', `[SALES] User ${userNumber} is being transferred to sales. Conversation is now paused for the bot.`);
+                console.log(`!! ALERT: User ${userNumber} needs a sales agent!`);
                 await msg.reply('Obrigado pelo seu interesse! Um de nossos especialistas de vendas entrará em contato em breve. Para reiniciar, digite !reset.');
                 userState.step = 'end';
                 break;
