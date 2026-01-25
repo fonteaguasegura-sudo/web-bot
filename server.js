@@ -26,7 +26,7 @@ let client;
 let qrCodeDataUrl = null;
 let clientReady = false;
 
-const dataPath = process.env.RENDER ? '/app/data/.wwebjs_auth' : path.join(__dirname, '.wwebjs_auth');
+const dataPath = path.join(__dirname, '.wwebjs_auth');
 
 function initializeWhatsAppClient() {
     client = new Client({
