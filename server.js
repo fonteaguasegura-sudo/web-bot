@@ -26,15 +26,14 @@ let client;
 let qrCodeDataUrl = null;
 let clientReady = false;
 
-function initializeWhatsAppClient() {
-    const SESSION_PATH = path.join(__dirname, '.wwebjs_auth', 'session-bot-instance-1');
-    if (fs.existsSync(SESSION_PATH)) {
-        fs.rmSync(SESSION_PATH, { recursive: true, force: true });
-        console.log(`Removed old session data from ${SESSION_PATH}`);
-    }
+const dataPath = process.env.RENDER ? '/app/data/.wwebjs_auth' : path.join(__dirname, '.wwebjs_auth');
 
+function initializeWhatsAppClient() {
     client = new Client({
-        authStrategy: new LocalAuth({ clientId: "bot-instance-1" }),
+        authStrategy: new LocalAuth({
+            clientId: "bot-instance-1",
+            dataPath: dataPath
+        }),
         puppeteer: {
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
@@ -205,11 +204,6 @@ function initializeWhatsAppClient() {
         clientReady = false;
         qrCodeDataUrl = null;
         io.emit('message', `Client was logged out: ${reason}. Re-initializing...`);
-        const sessionPath = path.join(__dirname, '.wwebjs_auth', 'session');
-        if (fs.existsSync(sessionPath)) {
-             fs.rmSync(sessionPath, { recursive: true, force: true });
-             console.log("Removed old session data.");
-        }
         client.destroy().then(() => initializeWhatsAppClient()).catch(err => console.error("Error destroying client:", err));
     });
 
