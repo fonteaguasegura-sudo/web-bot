@@ -28,7 +28,10 @@ let clientReady = false;
 
 const dataPath = path.join(__dirname, '.wwebjs_auth');
 
-function initializeWhatsAppClient() {
+const PCR = require('puppeteer-chromium-resolver');
+
+async function initializeWhatsAppClient() {
+    const stats = await PCR.getStats();
     client = new Client({
         authStrategy: new LocalAuth({
             clientId: "bot-instance-1",
@@ -36,7 +39,17 @@ function initializeWhatsAppClient() {
         }),
         puppeteer: {
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
+            executablePath: stats.executablePath,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process', // <- this one doesn't works in Windows
+                '--disable-gpu'
+            ]
         },
         webVersionCache: {
             type: 'remote',
@@ -235,7 +248,7 @@ io.on('connection', (socket) => {
 });
 
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  initializeWhatsAppClient();
+  await initializeWhatsAppClient();
 });
