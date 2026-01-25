@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; background-color: #f4f4f9; color: #333; }
+        #container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #075E54; }
+        #status { margin-bottom: 20px; }
+        #qrcode { margin-bottom: 20px; }
+        #logs { list-style-type: none; padding: 0; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
+        #logs li { padding: 8px; border-bottom: 1px solid #eee; }
+        #logs li:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>WhatsApp Bot Status</h1>
+        <div id="status">Connecting to server...</div>
+        <div id="qrcode"></div>
+        <h2>Logs</h2>
+        <ul id="logs"></ul>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const statusDiv = document.getElementById('status');
+        const qrcodeDiv = document.getElementById('qrcode');
+        const logsUl = document.getElementById('logs');
+
+        socket.on('message', (msg) => {
+            statusDiv.innerHTML = msg;
+            const li = document.createElement('li');
+            li.textContent = `[STATUS] ${msg}`;
+            logsUl.prepend(li);
+        });
+        
+        socket.on('qr', (qrDataUrl) => {
+            statusDiv.innerHTML = 'Scan the QR Code with your WhatsApp app.';
+            qrcodeDiv.innerHTML = `<img src="${qrDataUrl}" alt="QR Code">`;
+        });
+        
+        socket.on('ready', () => {
+            statusDiv.innerHTML = 'WhatsApp client is ready!';
+            qrcodeDiv.innerHTML = '';
+        });
+
+        socket.on('log', (logMsg) => {
+            const li = document.createElement('li');
+            li.textContent = logMsg;
+            logsUl.prepend(li);
+        });
+    </script>
+</body>
+</html>

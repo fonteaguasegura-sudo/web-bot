@@ -1,0 +1,11 @@
+
+services:
+  whatsapp_web_bot:
+    build: .
+    container_name: whatsapp_web_bot
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the session data directory to persist the login session
+      - ./.wwebjs_auth:/app/.wwebjs_auth
+    shm_size: '2gb'
