@@ -28,10 +28,7 @@ let clientReady = false;
 
 const dataPath = path.join(__dirname, '.wwebjs_auth');
 
-const PCR = require('puppeteer-chromium-resolver');
-
-async function initializeWhatsAppClient() {
-    const stats = await PCR.getStats();
+function initializeWhatsAppClient() {
     client = new Client({
         authStrategy: new LocalAuth({
             clientId: "bot-instance-1",
@@ -39,7 +36,6 @@ async function initializeWhatsAppClient() {
         }),
         puppeteer: {
             headless: true,
-            executablePath: stats.executablePath,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -248,7 +244,7 @@ io.on('connection', (socket) => {
 });
 
 
-server.listen(PORT, async () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  await initializeWhatsAppClient();
+  initializeWhatsAppClient();
 });
