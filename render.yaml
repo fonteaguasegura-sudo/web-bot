@@ -9,7 +9,4 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 18
-    disk:
-      name: data
-      mountPath: /app/data
-      sizeGB: 1
+
