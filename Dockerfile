@@ -4,13 +4,8 @@ FROM node:18-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install Google Chrome and other dependencies
-RUN apt-get update && \
-    apt-get install -y wget --no-install-recommends && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
-    apt-get update && \
-    apt-get install -y google-chrome-stable \
+# Install required dependencies for whatsapp-web.js/puppeteer
+RUN apt-get update && apt-get install -y \
     ca-certificates \
     fonts-liberation \
     libasound2 \
@@ -46,18 +41,9 @@ RUN apt-get update && \
     libxss1 \
     libxtst6 \
     lsb-release \
+    wget \
     xdg-utils \
-    --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean
-
-# List files in /usr/bin to verify chrome installation
-RUN ls -l /usr/bin
-
-# Find and link chrome
-RUN CHROME_PATH=$(which google-chrome-stable) && \
-    echo "Chrome path: ${CHROME_PATH}" && \
-    ln -s "${CHROME_PATH}" /usr/bin/google-chrome
+    --no-install-recommends
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
