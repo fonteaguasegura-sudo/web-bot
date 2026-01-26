@@ -4,16 +4,13 @@ FROM node:18-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install Google Chrome
-RUN apt-get update && apt-get install -y wget --no-install-recommends && \
+# Install Google Chrome and other dependencies
+RUN apt-get update && \
+    apt-get install -y wget --no-install-recommends && \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
     apt-get update && \
-    apt-get install -y google-chrome-stable --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install other dependencies
-RUN apt-get update && apt-get install -y \
+    apt-get install -y google-chrome-stable \
     ca-certificates \
     fonts-liberation \
     libasound2 \
@@ -50,7 +47,12 @@ RUN apt-get update && apt-get install -y \
     libxtst6 \
     lsb-release \
     xdg-utils \
-    --no-install-recommends
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
+# List files in /usr/bin to verify chrome installation
+RUN ls -l /usr/bin
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
