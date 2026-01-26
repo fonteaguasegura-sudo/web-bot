@@ -10,6 +10,8 @@ services:
       - key: NODE_VERSION
         value: 18
       - key: PUPPETEER_CACHE_DIR
-        value: ./.puppeteer_cache
-    cache:
-      - path: ./.puppeteer_cache
+        value: /var/data/.puppeteer_cache
+    disks:
+      - name: puppeteer_cache
+        mountPath: /var/data/.puppeteer_cache
+        sizeGB: 512MB
