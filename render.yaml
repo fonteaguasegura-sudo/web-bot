@@ -3,7 +3,7 @@ services:
     name: whatsapp-web-bot
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: rm -rf node_modules && npm cache clean --force && npm install --force
     startCommand: node server.js
     healthCheckPath: /
     envVars:
