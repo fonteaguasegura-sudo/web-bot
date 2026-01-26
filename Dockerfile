@@ -54,6 +54,11 @@ RUN apt-get update && \
 # List files in /usr/bin to verify chrome installation
 RUN ls -l /usr/bin
 
+# Find and link chrome
+RUN CHROME_PATH=$(which google-chrome-stable) && \
+    echo "Chrome path: ${CHROME_PATH}" && \
+    ln -s "${CHROME_PATH}" /usr/bin/google-chrome
+
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
