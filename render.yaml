@@ -11,3 +11,5 @@ services:
         value: 18
       - key: PUPPETEER_CACHE_DIR
         value: /opt/render/project/src/.puppeteer_cache
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: true

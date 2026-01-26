@@ -37,7 +37,7 @@ function initializeWhatsAppClient() {
         }),
         puppeteer: {
             headless: true,
-            executablePath: puppeteer.executablePath(),
+            executablePath: process.env.PUPPETEER_SKIP_DOWNLOAD === 'true' ? '/usr/bin/google-chrome' : puppeteer.executablePath(),
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
