@@ -7,7 +7,7 @@ const qrcode = require('qrcode');
 const fs = require('fs');
 const db = require('./database.js');
 const puppeteer = require('puppeteer-core');
-const chrome = require('chrome-aws-lambda');
+const chrome = require('@sparticuz/chrome-aws-lambda');
 
 const app = express();
 const server = http.createServer(app);
