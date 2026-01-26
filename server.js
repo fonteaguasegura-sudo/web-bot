@@ -30,29 +30,18 @@ let clientReady = false;
 
 const dataPath = path.join(__dirname, '.wwebjs_auth');
 
-function initializeWhatsAppClient() {
+async function initializeWhatsAppClient() {
+    const executablePath = await chrome.executablePath;
+
     client = new Client({
         authStrategy: new LocalAuth({
             clientId: "bot-instance-1",
             dataPath: "./.wwebjs_auth"
         }),
         puppeteer: {
-            headless: true,
-            executablePath: puppeteer.executablePath(),
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu',
-                '--incognito',
-                '--disable-web-security',
-                '--disable-features=site-per-process',
-                '--disable-site-isolation-trials',
-                '--disable-blink-features=AutomationControlled'
-            ]
+            headless: chrome.headless,
+            executablePath,
+            args: chrome.args
         },
         webVersionCache: {
             type: 'remote',
@@ -251,7 +240,7 @@ io.on('connection', (socket) => {
 });
 
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
-  initializeWhatsAppClient();
+  await initializeWhatsAppClient();
 });
