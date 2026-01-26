@@ -6,6 +6,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const fs = require('fs');
 const db = require('./database.js');
+const puppeteer = require('puppeteer');
 
 const app = express();
 const server = http.createServer(app);
@@ -32,10 +33,11 @@ function initializeWhatsAppClient() {
     client = new Client({
         authStrategy: new LocalAuth({
             clientId: "bot-instance-1",
-            dataPath: dataPath
+            dataPath: "./.wwebjs_auth"
         }),
         puppeteer: {
             headless: true,
+            executablePath: puppeteer.executablePath(),
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -43,8 +45,12 @@ function initializeWhatsAppClient() {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--single-process', // <- this one doesn't works in Windows
-                '--disable-gpu'
+                '--disable-gpu',
+                '--incognito',
+                '--disable-web-security',
+                '--disable-features=site-per-process',
+                '--disable-site-isolation-trials',
+                '--disable-blink-features=AutomationControlled'
             ]
         },
         webVersionCache: {
