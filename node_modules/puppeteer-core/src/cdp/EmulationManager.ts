@@ -66,6 +66,11 @@ interface JavascriptEnabledState {
   active: boolean;
 }
 
+interface FocusState {
+  enabled: boolean;
+  active: boolean;
+}
+
 /**
  * @internal
  */
@@ -85,7 +90,7 @@ export class EmulatedState<T extends {active: boolean}> {
   constructor(
     initialState: T,
     clientProvider: ClientProvider,
-    updater: (client: CDPSession, state: T) => Promise<void>
+    updater: (client: CDPSession, state: T) => Promise<void>,
   ) {
     this.#state = initialState;
     this.#clientProvider = clientProvider;
@@ -106,7 +111,7 @@ export class EmulatedState<T extends {active: boolean}> {
     await Promise.all(
       this.#clientProvider.clients().map(client => {
         return this.#updater(client, this.#state);
-      })
+      }),
     );
   }
 }
@@ -127,63 +132,63 @@ export class EmulationManager implements ClientProvider {
       active: false,
     },
     this,
-    this.#applyViewport
+    this.#applyViewport,
   );
   #idleOverridesState = new EmulatedState<IdleOverridesState>(
     {
       active: false,
     },
     this,
-    this.#emulateIdleState
+    this.#emulateIdleState,
   );
   #timezoneState = new EmulatedState<TimezoneState>(
     {
       active: false,
     },
     this,
-    this.#emulateTimezone
+    this.#emulateTimezone,
   );
   #visionDeficiencyState = new EmulatedState<VisionDeficiencyState>(
     {
       active: false,
     },
     this,
-    this.#emulateVisionDeficiency
+    this.#emulateVisionDeficiency,
   );
   #cpuThrottlingState = new EmulatedState<CpuThrottlingState>(
     {
       active: false,
     },
     this,
-    this.#emulateCpuThrottling
+    this.#emulateCpuThrottling,
   );
   #mediaFeaturesState = new EmulatedState<MediaFeaturesState>(
     {
       active: false,
     },
     this,
-    this.#emulateMediaFeatures
+    this.#emulateMediaFeatures,
   );
   #mediaTypeState = new EmulatedState<MediaTypeState>(
     {
       active: false,
     },
     this,
-    this.#emulateMediaType
+    this.#emulateMediaType,
   );
   #geoLocationState = new EmulatedState<GeoLocationState>(
     {
       active: false,
     },
     this,
-    this.#setGeolocation
+    this.#setGeolocation,
   );
   #defaultBackgroundColorState = new EmulatedState<DefaultBackgroundColorState>(
     {
       active: false,
     },
     this,
-    this.#setDefaultBackgroundColor
+    this.#setDefaultBackgroundColor,
   );
   #javascriptEnabledState = new EmulatedState<JavascriptEnabledState>(
     {
@@ -191,7 +196,15 @@ export class EmulationManager implements ClientProvider {
       active: false,
     },
     this,
-    this.#setJavaScriptEnabled
+    this.#setJavaScriptEnabled,
+  );
+  #focusState = new EmulatedState<FocusState>(
+    {
+      enabled: true,
+      active: false,
+    },
+    this,
+    this.#emulateFocus,
   );
 
   #secondaryClients = new Set<CDPSession>();
@@ -223,7 +236,7 @@ export class EmulationManager implements ClientProvider {
     void Promise.all(
       this.#states.map(s => {
         return s.sync().catch(debugError);
-      })
+      }),
     );
   }
 
@@ -244,7 +257,7 @@ export class EmulationManager implements ClientProvider {
           }
         : {
             active: false,
-          }
+          },
     );
 
     const mobile = viewport?.isMobile || false;
@@ -260,7 +273,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #applyViewport(
     client: CDPSession,
-    viewportState: ViewportState
+    viewportState: ViewportState,
   ): Promise<void> {
     if (!viewportState.viewport) {
       await Promise.all([
@@ -319,7 +332,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #emulateIdleState(
     client: CDPSession,
-    idleStateState: IdleOverridesState
+    idleStateState: IdleOverridesState,
   ): Promise<void> {
     if (!idleStateState.active) {
       return;
@@ -337,7 +350,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #emulateTimezone(
     client: CDPSession,
-    timezoneState: TimezoneState
+    timezoneState: TimezoneState,
   ): Promise<void> {
     if (!timezoneState.active) {
       return;
@@ -364,7 +377,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #emulateVisionDeficiency(
     client: CDPSession,
-    visionDeficiency: VisionDeficiencyState
+    visionDeficiency: VisionDeficiencyState,
   ): Promise<void> {
     if (!visionDeficiency.active) {
       return;
@@ -375,7 +388,7 @@ export class EmulationManager implements ClientProvider {
   }
 
   async emulateVisionDeficiency(
-    type?: Protocol.Emulation.SetEmulatedVisionDeficiencyRequest['type']
+    type?: Protocol.Emulation.SetEmulatedVisionDeficiencyRequest['type'],
   ): Promise<void> {
     const visionDeficiencies = new Set<
       Protocol.Emulation.SetEmulatedVisionDeficiencyRequest['type']
@@ -385,11 +398,12 @@ export class EmulationManager implements ClientProvider {
       'blurredVision',
       'deuteranopia',
       'protanopia',
+      'reducedContrast',
       'tritanopia',
     ]);
     assert(
       !type || visionDeficiencies.has(type),
-      `Unsupported vision deficiency: ${type}`
+      `Unsupported vision deficiency: ${type}`,
     );
     await this.#visionDeficiencyState.setState({
       active: true,
@@ -400,7 +414,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #emulateCpuThrottling(
     client: CDPSession,
-    state: CpuThrottlingState
+    state: CpuThrottlingState,
   ): Promise<void> {
     if (!state.active) {
       return;
@@ -413,7 +427,7 @@ export class EmulationManager implements ClientProvider {
   async emulateCPUThrottling(factor: number | null): Promise<void> {
     assert(
       factor === null || factor >= 1,
-      'Throttling rate should be greater or equal to 1'
+      'Throttling rate should be greater or equal to 1',
     );
     await this.#cpuThrottlingState.setState({
       active: true,
@@ -424,7 +438,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #emulateMediaFeatures(
     client: CDPSession,
-    state: MediaFeaturesState
+    state: MediaFeaturesState,
   ): Promise<void> {
     if (!state.active) {
       return;
@@ -440,9 +454,9 @@ export class EmulationManager implements ClientProvider {
         const name = mediaFeature.name;
         assert(
           /^(?:prefers-(?:color-scheme|reduced-motion)|color-gamut)$/.test(
-            name
+            name,
           ),
-          'Unsupported media feature: ' + name
+          'Unsupported media feature: ' + name,
         );
       }
     }
@@ -455,7 +469,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #emulateMediaType(
     client: CDPSession,
-    state: MediaTypeState
+    state: MediaTypeState,
   ): Promise<void> {
     if (!state.active) {
       return;
@@ -470,7 +484,7 @@ export class EmulationManager implements ClientProvider {
       type === 'screen' ||
         type === 'print' ||
         (type ?? undefined) === undefined,
-      'Unsupported media type: ' + type
+      'Unsupported media type: ' + type,
     );
     await this.#mediaTypeState.setState({
       type,
@@ -481,7 +495,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #setGeolocation(
     client: CDPSession,
-    state: GeoLocationState
+    state: GeoLocationState,
   ): Promise<void> {
     if (!state.active) {
       return;
@@ -494,7 +508,7 @@ export class EmulationManager implements ClientProvider {
             latitude: state.geoLocation.latitude,
             accuracy: state.geoLocation.accuracy,
           }
-        : undefined
+        : undefined,
     );
   }
 
@@ -502,17 +516,17 @@ export class EmulationManager implements ClientProvider {
     const {longitude, latitude, accuracy = 0} = options;
     if (longitude < -180 || longitude > 180) {
       throw new Error(
-        `Invalid longitude "${longitude}": precondition -180 <= LONGITUDE <= 180 failed.`
+        `Invalid longitude "${longitude}": precondition -180 <= LONGITUDE <= 180 failed.`,
       );
     }
     if (latitude < -90 || latitude > 90) {
       throw new Error(
-        `Invalid latitude "${latitude}": precondition -90 <= LATITUDE <= 90 failed.`
+        `Invalid latitude "${latitude}": precondition -90 <= LATITUDE <= 90 failed.`,
       );
     }
     if (accuracy < 0) {
       throw new Error(
-        `Invalid accuracy "${accuracy}": precondition 0 <= ACCURACY failed.`
+        `Invalid accuracy "${accuracy}": precondition 0 <= ACCURACY failed.`,
       );
     }
     await this.#geoLocationState.setState({
@@ -528,7 +542,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #setDefaultBackgroundColor(
     client: CDPSession,
-    state: DefaultBackgroundColorState
+    state: DefaultBackgroundColorState,
   ): Promise<void> {
     if (!state.active) {
       return;
@@ -561,7 +575,7 @@ export class EmulationManager implements ClientProvider {
   @invokeAtMostOnceForArguments
   async #setJavaScriptEnabled(
     client: CDPSession,
-    state: JavascriptEnabledState
+    state: JavascriptEnabledState,
   ): Promise<void> {
     if (!state.active) {
       return;
@@ -575,6 +589,23 @@ export class EmulationManager implements ClientProvider {
     await this.#javascriptEnabledState.setState({
       active: true,
       javaScriptEnabled: enabled,
+    });
+  }
+
+  @invokeAtMostOnceForArguments
+  async #emulateFocus(client: CDPSession, state: FocusState): Promise<void> {
+    if (!state.active) {
+      return;
+    }
+    await client.send('Emulation.setFocusEmulationEnabled', {
+      enabled: state.enabled,
+    });
+  }
+
+  async emulateFocus(enabled: boolean): Promise<void> {
+    await this.#focusState.setState({
+      active: true,
+      enabled,
     });
   }
 }

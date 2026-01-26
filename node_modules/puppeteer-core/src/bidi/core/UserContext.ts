@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type * as Bidi from 'chromium-bidi/lib/cjs/protocol/protocol.js';
+import type * as Bidi from 'webdriver-bidi-protocol';
 
 import {EventEmitter} from '../../common/EventEmitter.js';
 import {assert} from '../../util/assert.js';
@@ -23,6 +23,7 @@ export type CreateBrowsingContextOptions = Omit<
   'type' | 'referenceContext'
 > & {
   referenceContext?: BrowsingContext;
+  background?: boolean;
 };
 
 /**
@@ -68,7 +69,7 @@ export class UserContext extends EventEmitter<{
 
   #initialize() {
     const browserEmitter = this.#disposables.use(
-      new EventEmitter(this.browser)
+      new EventEmitter(this.browser),
     );
     browserEmitter.once('closed', ({reason}) => {
       this.dispose(`User context was closed: ${reason}`);
@@ -78,7 +79,7 @@ export class UserContext extends EventEmitter<{
     });
 
     const sessionEmitter = this.#disposables.use(
-      new EventEmitter(this.#session)
+      new EventEmitter(this.#session),
     );
     sessionEmitter.on('browsingContext.contextCreated', info => {
       if (info.parent) {
@@ -94,12 +95,12 @@ export class UserContext extends EventEmitter<{
         undefined,
         info.context,
         info.url,
-        info.originalOpener
+        info.originalOpener,
       );
       this.#browsingContexts.set(browsingContext.id, browsingContext);
 
       const browsingContextEmitter = this.#disposables.use(
-        new EventEmitter(browsingContext)
+        new EventEmitter(browsingContext),
       );
       browsingContextEmitter.on('closed', () => {
         browsingContextEmitter.removeAllListeners();
@@ -139,7 +140,7 @@ export class UserContext extends EventEmitter<{
   })
   async createBrowsingContext(
     type: Bidi.BrowsingContext.CreateType,
-    options: CreateBrowsingContextOptions = {}
+    options: CreateBrowsingContextOptions = {},
   ): Promise<BrowsingContext> {
     const {
       result: {context: contextId},
@@ -147,13 +148,14 @@ export class UserContext extends EventEmitter<{
       type,
       ...options,
       referenceContext: options.referenceContext?.id,
+      background: options.background,
       userContext: this.#id,
     });
 
     const browsingContext = this.#browsingContexts.get(contextId);
     assert(
       browsingContext,
-      'The WebDriver BiDi implementation is failing to create a browsing context correctly.'
+      'The WebDriver BiDi implementation is failing to create a browsing context correctly.',
     );
 
     // We use an array to avoid the promise from being awaited.
@@ -180,7 +182,7 @@ export class UserContext extends EventEmitter<{
   })
   async getCookies(
     options: GetCookiesOptions = {},
-    sourceOrigin: string | undefined = undefined
+    sourceOrigin: string | undefined = undefined,
   ): Promise<Bidi.Network.Cookie[]> {
     const {
       result: {cookies},
@@ -201,7 +203,7 @@ export class UserContext extends EventEmitter<{
   })
   async setCookie(
     cookie: Bidi.Storage.PartialCookie,
-    sourceOrigin?: string
+    sourceOrigin?: string,
   ): Promise<void> {
     await this.#session.send('storage.setCookie', {
       cookie,
@@ -220,7 +222,7 @@ export class UserContext extends EventEmitter<{
   async setPermissions(
     origin: string,
     descriptor: Bidi.Permissions.PermissionDescriptor,
-    state: Bidi.Permissions.PermissionState
+    state: Bidi.Permissions.PermissionState,
   ): Promise<void> {
     await this.#session.send('permissions.setPermission', {
       origin,
@@ -230,7 +232,7 @@ export class UserContext extends EventEmitter<{
     });
   }
 
-  [disposeSymbol](): void {
+  override [disposeSymbol](): void {
     this.#reason ??=
       'User context already closed, probably because the browser disconnected/closed.';
     this.emit('closed', {reason: this.#reason});

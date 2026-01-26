@@ -7,7 +7,7 @@ const qrcode = require('qrcode');
 const fs = require('fs');
 const db = require('./database.js');
 const puppeteer = require('puppeteer-core');
-const chromium = require('@sparticuz/chromium');
+const chrome = require('@sparticuz/chrome-aws-lambda');
 
 const app = express();
 const server = http.createServer(app);
@@ -31,7 +31,7 @@ let clientReady = false;
 const dataPath = path.join(__dirname, '.wwebjs_auth');
 
 async function initializeWhatsAppClient() {
-    const executablePath = await chromium.executablePath();
+    const executablePath = await chrome.executablePath;
 
     client = new Client({
         authStrategy: new LocalAuth({
@@ -39,9 +39,9 @@ async function initializeWhatsAppClient() {
             dataPath: "./.wwebjs_auth"
         }),
         puppeteer: {
-            headless: chromium.headless,
+            headless: chrome.headless,
             executablePath,
-            args: chromium.args
+            args: chrome.args
         },
         webVersionCache: {
             type: 'remote',

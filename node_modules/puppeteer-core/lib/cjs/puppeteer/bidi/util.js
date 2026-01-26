@@ -5,7 +5,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rewriteNavigationError = exports.createEvaluationError = void 0;
+exports.createEvaluationError = createEvaluationError;
+exports.rewriteNavigationError = rewriteNavigationError;
 const Errors_js_1 = require("../common/Errors.js");
 const util_js_1 = require("../common/util.js");
 const Deserializer_js_1 = require("./Deserializer.js");
@@ -13,6 +14,13 @@ const Deserializer_js_1 = require("./Deserializer.js");
  * @internal
  */
 function createEvaluationError(details) {
+    if (details.exception.type === 'object' && !('value' in details.exception)) {
+        // Heuristic detecting a platform object was thrown. WebDriver BiDi serializes
+        // platform objects without value. If so, throw a generic error with the actual
+        // exception's message, as there is no way to restore the original exception's
+        // constructor.
+        return new Error(details.text);
+    }
     if (details.exception.type !== 'error') {
         return Deserializer_js_1.BidiDeserializer.deserialize(details.exception);
     }
@@ -40,7 +48,6 @@ function createEvaluationError(details) {
     error.stack = [details.text, ...stackLines].join('\n');
     return error;
 }
-exports.createEvaluationError = createEvaluationError;
 /**
  * @internal
  */
@@ -55,5 +62,4 @@ function rewriteNavigationError(message, ms) {
         throw error;
     };
 }
-exports.rewriteNavigationError = rewriteNavigationError;
 //# sourceMappingURL=util.js.map
