@@ -1,5 +1,6 @@
 const fastify = require('fastify')({ logger: true });
 const path = require('path');
+const fs = require('fs');
 const { Server } = require("socket.io");
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
@@ -12,15 +13,39 @@ const PORT = process.env.PORT || 3000;
 // Create a Fastify app
 const app = fastify;
 
-// Register fastify-static to serve the index.html file
-app.register(require('@fastify/static'), {
-  root: path.join(__dirname, ''),
-  prefix: '/',
-  index: 'index.html',
+
+// Add explicit route handlers for static files
+app.get('/', async (req, reply) => {
+    try {
+        const indexPath = path.join(__dirname, 'index.html');
+        const html = fs.readFileSync(indexPath, 'utf8');
+        reply.type('text/html').send(html);
+    } catch (error) {
+        app.log.error('Error serving index.html:', error);
+        reply.code(500).send({ error: 'Failed to load page' });
+    }
 });
 
-app.get('/', (req, reply) => {
-    reply.sendFile('index.html');
+app.get('/style.css', async (req, reply) => {
+    try {
+        const cssPath = path.join(__dirname, 'style.css');
+        const css = fs.readFileSync(cssPath, 'utf8');
+        reply.type('text/css').send(css);
+    } catch (error) {
+        app.log.error('Error serving style.css:', error);
+        reply.code(404).send({ error: 'Not found' });
+    }
+});
+
+app.get('/script.js', async (req, reply) => {
+    try {
+        const jsPath = path.join(__dirname, 'script.js');
+        const js = fs.readFileSync(jsPath, 'utf8');
+        reply.type('application/javascript').send(js);
+    } catch (error) {
+        app.log.error('Error serving script.js:', error);
+        reply.code(404).send({ error: 'Not found' });
+    }
 });
 
 
