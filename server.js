@@ -302,7 +302,7 @@ async function initializeWhatsAppClient() {
                     console.log(`[REPLY] Sent support message to ${userNumber}`);
                     userState.step = 'end';
                     console.log(`[STATE] New state for ${userNumber}: end`);
-                } catch (error): {
+                } catch (error) {
                     console.error(`[REPLY-ERROR] Failed to send support message to ${userNumber}:`, error);
                 }
                 break;
