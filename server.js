@@ -4,6 +4,7 @@ const fs = require('fs');
 const { Server } = require("socket.io");
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
+const qrcode_terminal = require('qrcode-terminal');
 const db = require('./database.js');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
@@ -83,10 +84,11 @@ async function initializeWhatsAppClient() {
     });
 
     client.on('qr', (qr) => {
-        console.log('QR RECEIVED', qr);
+        console.log('QR code received, scan the code below with your phone.');
+        qrcode_terminal.generate(qr, { small: true });
         qrcode.toDataURL(qr, (err, url) => {
             if (err) {
-                console.error('Error generating QR code', err);
+                console.error('Error generating QR code for web UI', err);
                 io.emit('message', 'Error generating QR code.');
             } else {
                 qrCodeDataUrl = url; // Store QR code
