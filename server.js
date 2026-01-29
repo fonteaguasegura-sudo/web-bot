@@ -19,6 +19,10 @@ app.register(require('@fastify/static'), {
   index: 'index.html',
 });
 
+app.get('/', (req, reply) => {
+    reply.sendFile('index.html');
+});
+
 
 
 // Attach socket.io
