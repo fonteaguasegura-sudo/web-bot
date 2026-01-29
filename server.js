@@ -16,6 +16,7 @@ const app = fastify;
 app.register(require('@fastify/static'), {
   root: path.join(__dirname, ''),
   prefix: '/',
+  index: 'index.html',
 });
 
 
