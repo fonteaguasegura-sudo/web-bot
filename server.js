@@ -69,7 +69,7 @@ async function initializeWhatsAppClient() {
     client = new Client({
         authStrategy: new LocalAuth({
             clientId: "bot-instance-1",
-            dataPath: "./.wwebjs_auth"
+            dataPath: "/tmp/.wwebjs_auth"
         }),
         puppeteer: {
             headless: chromium.headless,
