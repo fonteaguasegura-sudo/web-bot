@@ -12,7 +12,6 @@
   "type": "commonjs",
   "dependencies": {
     "@sparticuz/chromium": "^123.0.1",
-    "debug": "^4.3.3",
     "express": "^4.19.2",
     "puppeteer-core": "^22.10.0",
     "qrcode": "^1.5.4",
