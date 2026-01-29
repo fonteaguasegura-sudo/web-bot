@@ -1,4 +1,4 @@
-const express = require('express');
+const fastify = require('fastify')({ logger: true });
 const http = require('http');
 const { Server } = require("socket.io");
 const path = require('path');
@@ -9,16 +9,29 @@ const db = require('./database.js');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
 const PORT = process.env.PORT || 3000;
 
-// Serve the index.html file
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+// Create a Fastify app
+const app = fastify;
+
+// Register fastify-static to serve the index.html file
+app.register(require('@fastify/static'), {
+  root: path.join(__dirname, ''),
 });
+
+app.get('/', (req, reply) => {
+    reply.sendFile('index.html');
+  });
+
+const server = http.createServer(function (req, res) {
+    app.ready(err => {
+        if (err) throw err
+        app.server.emit('request', req, res)
+    })
+})
+
+const io = new Server(server);
+
 
 // --- In-Memory State Management ---
 const conversationStates = new Map();
@@ -374,7 +387,11 @@ io.on('connection', (socket) => {
 });
 
 
-server.listen(PORT, async () => {
-  console.log(`Server is running on port ${PORT}`);
-  await initializeWhatsAppClient();
+app.listen({ port: PORT, host: '0.0.0.0' }, async (err, address) => {
+    if (err) {
+      app.log.error(err)
+      process.exit(1)
+    }
+    console.log(`Server is running on port ${PORT}`);
+    await initializeWhatsAppClient();
 });

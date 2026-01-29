@@ -11,7 +11,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^4.18.2",
+    "fastify": "^4.26.2",
+    "@fastify/static": "^7.0.4",
     "@sparticuz/chromium": "^123.0.1",
     "puppeteer-core": "^22.10.0",
     "qrcode": "^1.5.4",
