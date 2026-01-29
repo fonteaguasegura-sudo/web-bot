@@ -1,10 +1,8 @@
 const fastify = require('fastify')({ logger: true });
-const http = require('http');
-const { Server } = require("socket.io");
 const path = require('path');
+const { Server } = require("socket.io");
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
-const fs = require('fs');
 const db = require('./database.js');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
@@ -17,21 +15,15 @@ const app = fastify;
 // Register fastify-static to serve the index.html file
 app.register(require('@fastify/static'), {
   root: path.join(__dirname, ''),
+  prefix: '/',
 });
 
 app.get('/', (req, reply) => {
     reply.sendFile('index.html');
-  });
+});
 
-const server = http.createServer(function (req, res) {
-    app.ready(err => {
-        if (err) throw err
-        app.server.emit('request', req, res)
-    })
-})
-
-const io = new Server(server);
-
+// Attach socket.io
+const io = new Server(app.server);
 
 // --- In-Memory State Management ---
 const conversationStates = new Map();
@@ -310,7 +302,7 @@ async function initializeWhatsAppClient() {
                     console.log(`[REPLY] Sent support message to ${userNumber}`);
                     userState.step = 'end';
                     console.log(`[STATE] New state for ${userNumber}: end`);
-                } catch (error) {
+                } catch (error): {
                     console.error(`[REPLY-ERROR] Failed to send support message to ${userNumber}:`, error);
                 }
                 break;
